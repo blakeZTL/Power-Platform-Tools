@@ -97,12 +97,13 @@ namespace Deployment_Settings_File
             url = Console.ReadLine();
             Console.ForegroundColor = ConsoleColor.Green;
 
+            /// <TODO> AppId and redirect url needs to be customized to your own credntials </TODO>
             // Create the service connection string using the info provided above.
             string? connectionString = @$"
             AuthType=OAuth;
             Username={email};
             Integrated Security=True;
-            Url={url};
+            Url={url};            
             AppId=c1f1b3d2-3fd9-4fd8-b3b0-71f8e3f1e687;
             RedirectUri=https://power-apis-usgov001-public.consent.azure-apihub.us/redirect;
             TokenCacheStorePath=c:\MyTokenCache\msal_cache.data;
