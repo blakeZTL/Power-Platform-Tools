@@ -1,4 +1,5 @@
 ﻿using Microsoft.PowerPlatform.Dataverse.Client;
+using System.DirectoryServices.AccountManagement;
 using System.Security;
 
 namespace Deployment_Settings_File
@@ -38,8 +39,8 @@ namespace Deployment_Settings_File
             // Prompt the user for the client secret as a secure string
             Console.WriteLine("\nEnter client secret:");
             Console.ForegroundColor = ConsoleColor.White;
-            clientSecretSec = Helpers.GetPassword();  
-            
+            clientSecretSec = Helpers.GetPassword();
+
             // Convert the secure string to a string
             string? clientSecret = new System.Net.NetworkCredential(string.Empty, clientSecretSec).Password;
 
@@ -53,8 +54,8 @@ namespace Deployment_Settings_File
             ServiceClient svc;
             try
             {
-                Console.ForegroundColor = ConsoleColor.DarkBlue;
-                Console.WriteLine("Making connection...");
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("\nMaking connection...");
                 svc = new(connectionString);
 
                 if (svc.IsReady)
@@ -68,7 +69,63 @@ namespace Deployment_Settings_File
                 }
                 else
                 {
-                    Console.ForegroundColor= ConsoleColor.Magenta;
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine("Connection Failed");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return null;
+            }
+        }
+
+        public static ServiceClient OAuth()
+        {
+            Console.Title = "Preparing Connection";
+
+            string? url;
+
+            // Get current users email address
+            string? email = UserPrincipal.Current.EmailAddress;
+
+            //Prompt the user for the environment URL
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\nEnter environment url (for example: https://{environmentName}.crm9.dynamics.com):");
+            Console.ForegroundColor = ConsoleColor.White;
+            url = Console.ReadLine();
+            Console.ForegroundColor = ConsoleColor.Green;
+
+            // Create the service connection string using the info provided above.
+            string? connectionString = @$"
+            AuthType=OAuth;
+            Username={email};
+            Integrated Security=True;
+            Url={url};
+            AppId=c1f1b3d2-3fd9-4fd8-b3b0-71f8e3f1e687;
+            RedirectUri=https://power-apis-usgov001-public.consent.azure-apihub.us/redirect;
+            TokenCacheStorePath=c:\MyTokenCache\msal_cache.data;
+            LoginPrompt=Auto
+            ";
+
+            ServiceClient svc;
+            try
+            {
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.WriteLine("\nMaking connection...");
+                svc = new(connectionString);
+
+                if (svc.IsReady)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine($"\nConnection Made to {url}");                   
+
+                    return svc;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
                     Console.WriteLine("Connection Failed");
                     return null;
                 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.PowerPlatform.Dataverse.Client;
+using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 

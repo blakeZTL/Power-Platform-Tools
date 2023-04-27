@@ -9,7 +9,7 @@ namespace Deployment_Settings_File
             Console.Title = "Main";
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("A BURST tool for creating deployment settings files for Dataverse solutions.\n");
-            Console.ForegroundColor = ConsoleColor.Green;          
+            Console.ForegroundColor = ConsoleColor.Green;
 
             string? solutionName = null;
             string? needToExport;
@@ -36,7 +36,31 @@ namespace Deployment_Settings_File
 
             if (needToExport == "y")
             {
-                ServiceClient? svc = MakeConnection.ServicePrincipal();                
+                string? connectionType;
+                do
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\nConnect via your credentials or a service principal? (c/s)");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    connectionType = Console.ReadLine();
+
+                    if (connectionType != "c" && connectionType != "s")
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                        Console.WriteLine("\nInvalid input. Please try again.");
+                    }
+                }
+                while (connectionType != "c" && connectionType != "s");
+
+                ServiceClient? svc;
+                if (connectionType == "c") 
+                { 
+                    svc = MakeConnection.OAuth();
+                }
+                else
+                {
+                    svc = MakeConnection.ServicePrincipal();
+                }                    
 
                 solutionName = Solutions.GetSolutionName();
 
@@ -113,17 +137,41 @@ namespace Deployment_Settings_File
                 Helpers.PauseForUser("Finish and exit");
             }
             else
-            {                
+            {
                 if (deploymentSettingsFile == null)
                 {
                     Console.WriteLine("\nPlease input the full path of your deployment settings file including extension.\n");
                     Console.ForegroundColor = ConsoleColor.White;
                     deploymentSettingsFile = Console.ReadLine();
-                }                
+                }
 
-                ServiceClient? svc = MakeConnection.ServicePrincipal();
+                string? connectionType;
+                do
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\nConnect via your credentials or a service principal? (c/s)");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    connectionType = Console.ReadLine();
 
-                FileGeneration.AutofilllSettingsFile(svc,deploymentSettingsFile);
+                    if (connectionType != "c" && connectionType != "s")
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                        Console.WriteLine("\nInvalid input. Please try again.");
+                    }
+                }
+                while (connectionType != "c" && connectionType != "s");
+
+                ServiceClient? svc;
+                if (connectionType == "c")
+                {
+                    svc = MakeConnection.OAuth();
+                }
+                else
+                {
+                    svc = MakeConnection.ServicePrincipal();
+                }
+
+                FileGeneration.AutofilllSettingsFile(svc, deploymentSettingsFile);
             }
         }
     }

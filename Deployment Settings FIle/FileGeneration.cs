@@ -4,6 +4,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IO;
 using System.Xml;
 
 namespace Deployment_Settings_File
@@ -145,7 +146,7 @@ namespace Deployment_Settings_File
                 string? setWorkflowOwner;
                 do
                 {
-                    Console.WriteLine("\nWould you like to set your workflows to the same owner? (y/n");
+                    Console.WriteLine("\nWould you like to set your workflows to the same owner? (y/n)");
                     Console.ForegroundColor = ConsoleColor.White;
                     setWorkflowOwner = Console.ReadLine();
                 }
@@ -153,6 +154,7 @@ namespace Deployment_Settings_File
 
                 if (setWorkflowOwner == "y")
                 {
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("\nPlease enter the email address of the owner:");
                     Console.ForegroundColor = ConsoleColor.White;
                     workflowOwner = Console.ReadLine();

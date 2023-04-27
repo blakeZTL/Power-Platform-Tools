@@ -1,5 +1,5 @@
-﻿
-using System.Security;
+﻿using System.Security;
+
 /// <summary>
 /// Pauses the console application and displays a message to the user until the user hits the Enter key.
 /// </summary>
