@@ -141,7 +141,23 @@ namespace Deployment_Settings_File
                 // for each file in the Workflows folder, get the file names
                 string[] workflowFiles = Directory.GetFiles($@"{solutionUnpackPath}\Workflows", "*.json");
 
-                Console.ForegroundColor = ConsoleColor.White;
+                string? workflowOwner = "";
+                string? setWorkflowOwner;
+                do
+                {
+                    Console.WriteLine("\nWould you like to set your workflows to the same owner? (y/n");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    setWorkflowOwner = Console.ReadLine();
+                }
+                while (setWorkflowOwner != "y" && setWorkflowOwner != "n");
+
+                if (setWorkflowOwner == "y")
+                {
+                    Console.WriteLine("\nPlease enter the email address of the owner:");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    workflowOwner = Console.ReadLine();
+                }
+                
                 foreach (string workflow in workflowFiles)
                 {
                     JObject workflowRef = new();
@@ -154,7 +170,7 @@ namespace Deployment_Settings_File
 
                     workflowRef.Add("solutionComponentType", 29);
                     workflowRef.Add("solutionComponentUniqueName", workflowId);
-                    workflowRef.Add("ownerEmail", "APP-AJT-BURST-BPA@FAA.GOV");
+                    workflowRef.Add("ownerEmail", workflowOwner);
 
                     workflows.Add(workflowRef);
                     Console.WriteLine($"\nAdded workflow:");
