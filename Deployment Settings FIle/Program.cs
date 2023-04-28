@@ -1,9 +1,32 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.PowerPlatform.Dataverse.Client;
 
 namespace Deployment_Settings_File
 {
     class Program
     {
+        /// <summary>
+        /// Contains the application's configuration settings. 
+        /// </summary>
+        IConfiguration Configuration { get; }
+
+
+        /// <summary>
+        /// Constructor. Loads the application configuration settings from a JSON file.
+        /// </summary>
+        Program()
+        {
+            // Get the path to the appsettings file. If the environment variable is set,
+            // use that file path. Otherwise, use the runtime folder's settings file.
+            string? path = Environment.GetEnvironmentVariable("DATAVERSE_APPSETTINGS");
+            path ??= "appsettings.json";
+
+            // Load the app's configuration settings from the JSON file.
+            Configuration = new ConfigurationBuilder()
+                .AddJsonFile(path, optional: true, reloadOnChange: true)
+                .Build();
+        }
+
         static void Main()
         {
             Console.Title = "Main";
@@ -53,14 +76,14 @@ namespace Deployment_Settings_File
                 while (connectionType != "c" && connectionType != "s");
 
                 ServiceClient? svc;
-                if (connectionType == "c") 
-                { 
+                if (connectionType == "c")
+                {
                     svc = MakeConnection.OAuth();
                 }
                 else
                 {
                     svc = MakeConnection.ServicePrincipal();
-                }                    
+                }
 
                 solutionName = Solutions.GetSolutionName();
 

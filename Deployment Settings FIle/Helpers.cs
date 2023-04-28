@@ -1,4 +1,8 @@
-﻿using System.Security;
+﻿using Microsoft.PowerPlatform.Dataverse.Client;
+using System.DirectoryServices.AccountManagement;
+using System.Net.NetworkInformation;
+using System.Security;
+using System.Security.Policy;
 
 /// <summary>
 /// Pauses the console application and displays a message to the user until the user hits the Enter key.
@@ -52,5 +56,46 @@ namespace Deployment_Settings_File
             }
             return pwd;
         }
+
+        //public static string[] GetEnvironments()
+        //{
+        //    // Get current users email address
+        //    string? email = UserPrincipal.Current.EmailAddress;
+
+        //    /// <TODO> AppId and redirect url needs to be customized to your own credntials </TODO>
+        //    // Create the service connection string using the info provided above.
+        //    string? connectionString = @$"
+        //    AuthType=OAuth;
+        //    Username={email};
+        //    Integrated Security=True;                        
+        //    AppId=c1f1b3d2-3fd9-4fd8-b3b0-71f8e3f1e687;
+        //    RedirectUri=https://power-apis-usgov001-public.consent.azure-apihub.us/redirect;
+        //    TokenCacheStorePath=c:\MyTokenCache\msal_cache.data;
+        //    LoginPrompt=Auto
+        //    ";
+
+        //    ServiceClient svc = new(connectionString);
+
+        //    if (svc.IsReady)
+        //    {
+        //        Console.ForegroundColor = ConsoleColor.DarkGray;
+        //        Console.WriteLine($"\nConnection Made to {svc.ConnectedOrgFriendlyName}");
+        //        var environments = svc.ExecuteOrganizationRequest();
+        //        string[] environmentNames = new string[environments.Count];
+        //        int i = 0;
+        //        foreach (var environment in environments)
+        //        {
+        //            environmentNames[i] = environment.;
+        //            i++;
+        //        }
+        //        return environmentNames;
+        //    }
+        //    else
+        //    {
+        //        Console.ForegroundColor = ConsoleColor.Magenta;
+        //        Console.WriteLine("Connection Failed");
+        //        return null;
+        //    }
+        //}
     }
 }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.PowerPlatform.Dataverse.Client;
+using Newtonsoft.Json.Linq;
+using System.Configuration;
 using System.DirectoryServices.AccountManagement;
 using System.Security;
 
@@ -84,7 +86,7 @@ namespace Deployment_Settings_File
         public static ServiceClient OAuth()
         {
             Console.Title = "Preparing Connection";
-
+            
             string? url;
 
             // Get current users email address
@@ -97,7 +99,7 @@ namespace Deployment_Settings_File
             url = Console.ReadLine();
             Console.ForegroundColor = ConsoleColor.Green;
 
-            /// <TODO> AppId and redirect url needs to be customized to your own credntials </TODO>
+            /// < TODO > AppId and redirect url needs to be customized to your own credntials in appsettings.json </ TODO >
             // Create the service connection string using the info provided above.
             string? connectionString = @$"
             AuthType=OAuth;
@@ -110,17 +112,19 @@ namespace Deployment_Settings_File
             LoginPrompt=Auto
             ";
 
+
             ServiceClient svc;
             try
             {
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine("\nMaking connection...");
+
                 svc = new(connectionString);
 
                 if (svc.IsReady)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.WriteLine($"\nConnection Made to {url}");                   
+                    Console.WriteLine($"\nConnection Made to {url}");
 
                     return svc;
                 }
@@ -136,6 +140,6 @@ namespace Deployment_Settings_File
                 Console.WriteLine(ex.ToString());
                 return null;
             }
-        }
+        }        
     }
 }
