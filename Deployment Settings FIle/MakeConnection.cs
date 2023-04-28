@@ -23,6 +23,7 @@ namespace Deployment_Settings_File
             string? clientId;
             SecureString? clientSecretSec;
             string? url;
+            string[]? environments = GetEnvironments();
 
             /// <TODO> Make these 3 values match regex and not be blank </TODO>
 
@@ -31,6 +32,8 @@ namespace Deployment_Settings_File
             Console.ForegroundColor = ConsoleColor.White;
             url = Console.ReadLine();
             Console.ForegroundColor = ConsoleColor.Green;
+
+
 
             // Prompt the user for the client ID              
             Console.WriteLine("\nEnter client id:");
@@ -144,6 +147,67 @@ namespace Deployment_Settings_File
                 Console.WriteLine(ex.ToString());
                 return null;
             }
-        }        
+        }
+        
+        /// <summary>
+        /// A method that gets the environments from the appsettings.json file.
+        /// </summary>
+        /// <returns>An array of saved environments.</returns>
+        public static string[] GetEnvironments()
+        {
+            // Get the environments from the appsettings.json file
+            string? environments = ConfigurationManager.AppSettings["Environments"];
+            // Convert the environments to a string array
+            string[] environmentsArray = environments.Split(',');
+            return environmentsArray;
+        }
+
+        /// <summary>
+        /// A method that gets the environment URL from the appsettings.json file.
+        /// </summary>
+        /// <param name="environmentName"></param>
+        /// <returns>The url of the input environment name</returns>
+        public static string GetEnvironmentUrl(string environmentName)
+        {
+            // Get the environments from the appsettings.json file
+            string? environments = ConfigurationManager.AppSettings["Environments"];
+            // Convert the environments to a string array
+            string[] environmentsArray = environments.Split(',');
+            // Get the index of the environment name
+            int index = Array.IndexOf(environmentsArray, environmentName);
+            // Get the environment URL from the appsettings.json file
+            string? environmentUrls = ConfigurationManager.AppSettings["EnvironmentUrls"];
+            // Convert the environment URLs to a string array
+            string[] environmentUrlsArray = environmentUrls.Split(',');
+            // Get the environment URL from the array
+            string environmentUrl = environmentUrlsArray[index];
+            return environmentUrl;
+        }
+
+        /// <summary>
+        /// A method that saves the environment to the appsettings.json file.
+        /// </summary>
+        /// <param name="environmentName"></param>
+        /// <param name="environmentUrl"></param>
+        public static void SaveEnvironment(string environmentName, string environmentUrl)
+        {
+            // Get the environments from the appsettings.json file
+            string? environments = ConfigurationManager.AppSettings["Environments"];
+            // Convert the environments to a string array
+            string[] environmentsArray = environments.Split(',');
+            // Get the environment URL from the appsettings.json file
+            string? environmentUrls = ConfigurationManager.AppSettings["EnvironmentUrls"];
+            // Convert the environment URLs to a string array
+            string[] environmentUrlsArray = environmentUrls.Split(',');
+            // Add the new environment to the arrays
+            environmentsArray.Append(environmentName);
+            environmentUrlsArray.Append(environmentUrl);
+            // Convert the arrays to strings
+            string environmentsString = string.Join(",", environmentsArray);
+            string environmentUrlsString = string.Join(",", environmentUrlsArray);
+            // Save the new environments to the appsettings.json file
+            ConfigurationManager.AppSettings["Environments"] = environmentsString;
+            ConfigurationManager.AppSettings["EnvironmentUrls"] = environmentUrlsString;
+        }
     }
 }
