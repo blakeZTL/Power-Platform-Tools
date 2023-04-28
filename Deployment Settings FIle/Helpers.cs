@@ -4,15 +4,14 @@ using System.Net.NetworkInformation;
 using System.Security;
 using System.Security.Policy;
 
-/// <summary>
-/// Pauses the console application and displays a message to the user until the user hits the Enter key.
-/// </summary>
-/// <param name="message">The message to display to the user while waiting for input.</param>
-
 namespace Deployment_Settings_File
 {
     internal class Helpers
     {
+        /// <summary>
+        /// Pauses the console application and displays a message to the user until the user hits the Enter key.
+        /// </summary>
+        /// <param name="message">The message to display to the user while waiting for input.</param>
         public static void PauseForUser(string message)
         {
             // Play a beep sound to alert the user that the program is waiting for input.
@@ -30,6 +29,10 @@ namespace Deployment_Settings_File
             Console.ForegroundColor = ConsoleColor.Green;
         }
 
+        /// <summary>
+        /// Prompts the user for connection credentials.
+        /// </summary>
+        /// <returns>The input password as a secure string.</returns>
         public static SecureString GetPassword()
         {
             var pwd = new SecureString();

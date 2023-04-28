@@ -4,13 +4,19 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.IO;
+using System.Data;
 using System.Xml;
 
 namespace Deployment_Settings_File
 {
     internal class FileGeneration
     {
+        /// <summary>
+        /// Creates a deployment settings file based on the solution provided.
+        /// </summary>
+        /// <param name="solutionPath"></param>
+        /// <param name="solutionName"></param>
+        /// <returns>The path to the created file</returns>
         public static string CreateDeploymentSettings(string solutionPath, string solutionName)
         {
             Console.Title = "Create Deployment Settings";
@@ -159,7 +165,7 @@ namespace Deployment_Settings_File
                     Console.ForegroundColor = ConsoleColor.White;
                     workflowOwner = Console.ReadLine();
                 }
-                
+
                 foreach (string workflow in workflowFiles)
                 {
                     JObject workflowRef = new();
@@ -204,7 +210,12 @@ namespace Deployment_Settings_File
             return deploymentSettingsPath;
         }
 
-        public static void AutofilllSettingsFile(ServiceClient svc, string deploymentSettingsPath)
+        /// <summary>
+        /// A method to autofill connection references in the deployment settings file
+        /// </summary>
+        /// <param name="svc"></param>
+        /// <param name="deploymentSettingsPath"></param>
+        public static void AutofillConnections(ServiceClient svc, string deploymentSettingsPath)
         {
             Console.Clear();
             Console.Title = "Autofill Connection References";
@@ -336,7 +347,7 @@ namespace Deployment_Settings_File
                             if (targetConnection != null)
                             {
                                 Console.ForegroundColor = ConsoleColor.Gray;
-                                Console.Write($"Getting matching record from Dataverse...\n");                              
+                                Console.Write($"Getting matching record from Dataverse...\n");
 
                                 Entity matchingRecord = connectors.Entities.FirstOrDefault(e =>
                                 {
@@ -405,8 +416,87 @@ namespace Deployment_Settings_File
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("\nChanges saved to deployment settings file.");
 
-                Helpers.PauseForUser("Finish and close.");
+                Helpers.PauseForUser("Autofill Environmental Variables");
+
+                FileGeneration.AutofillEnvVars(svc, deploymentSettingsPath);
             }
+        }
+
+        /// <summary>
+        /// A method to autofill the environment variables in the deployment settings file
+        /// </summary>
+        /// <param name="svc"></param>
+        /// <param name="deploymentSettingsPath"></param>
+        public static void AutofillEnvVars(ServiceClient svc, string deploymentSettingsPath)
+        {
+
+            Console.Clear();
+            Console.Title = "Autofill Environment Variables";
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Getting variables from deployment settings file...");
+
+            // read the json from the deploymentSettinsPath
+            string dsfJson = File.ReadAllText(deploymentSettingsPath);
+            JObject settingsJson = JObject.Parse(dsfJson);
+
+            JArray envVars = settingsJson["EnvironmentVariables"].ToObject<JArray>();
+
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("\nFound variables:");
+            Console.ForegroundColor = ConsoleColor.Red;
+            foreach (var envVar in envVars)
+            {
+                Console.WriteLine("\n" + envVar);
+            }
+
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("\nReading environment variables from Dataverse...");
+
+            QueryExpression getEnvVarValues = new("environmentvariablevalue")
+            {
+                ColumnSet = new ColumnSet("schemaname", "value")
+            };
+            getEnvVarValues.Criteria.AddCondition("schemaname", ConditionOperator.In, envVars.Select(e => e["SchemaName"].Value<string>()).ToArray());
+
+            EntityCollection envVarValues = svc.RetrieveMultiple(getEnvVarValues);
+
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("\nFound values:");
+            Console.ForegroundColor = ConsoleColor.Red;
+            foreach (var envVarValue in envVarValues.Entities)
+            {
+                Console.WriteLine("\n" + envVarValue);
+            }
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("Matching records...");
+
+            foreach (var envVar in envVars)
+            {
+                string schemaName = envVar["SchemaName"].Value<string>();
+                Entity matchingRecord = envVarValues.Entities.FirstOrDefault(e => e.GetAttributeValue<string>("schemaname") == schemaName);
+                if (matchingRecord != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                    Console.WriteLine($"Match: {schemaName} with value of {matchingRecord.GetAttributeValue<string>("value")}");
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine($"Adding value: {matchingRecord.GetAttributeValue<string>("value")}\n");
+                    envVar["Value"] = matchingRecord.GetAttributeValue<string>("value");
+                }
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\nSaving changes to deployment settings file...");
+
+            // Serialize the modified JSON back to the file
+            settingsJson["EnvironmentVariables"] = envVars;
+            string updatedJson = settingsJson.ToString();
+            File.WriteAllText(deploymentSettingsPath, updatedJson);
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("\nChanges saved to deployment settings file.");
+            
+            Helpers.PauseForUser("Finish and exit.");
         }
     }
 }

@@ -83,6 +83,10 @@ namespace Deployment_Settings_File
             }
         }
 
+        /// <summary>
+        /// A method that that connects the user to Dataverse using the OAuth authentication method.
+        /// </summary>
+        /// <returns>An active client.</returns>
         public static ServiceClient OAuth()
         {
             Console.Title = "Preparing Connection";

@@ -11,7 +11,7 @@ namespace Deployment_Settings_File
         /// <summary>
         /// Exports a solution with a specific unique name by connecting to dataverse with the given connection string.
         /// </summary>
-        /// <param name="connectionString">The neccessary credentials in a specific format.</param>
+        /// <param name="svc">The client to Dataverse.</param>
         /// <param name="solutionName">The unique solution name.</param>        
         /// <returns>A file path to the solution zip file unless it is unsuccessful.</returns>
         public static string ExportSolution(ServiceClient svc, string solutionName)
