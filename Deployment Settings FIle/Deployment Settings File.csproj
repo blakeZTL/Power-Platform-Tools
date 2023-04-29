@@ -6,8 +6,27 @@
     <RootNamespace>Deployment_Settings_FIle</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Title>Deployment Settings File Generator</Title>	
+    <Title>Deployment Settings File Generator</Title>
+    <ApplicationIcon>AJT2000 Icon.ico</ApplicationIcon>
+    <SignAssembly>False</SignAssembly>
+    <Company>Federal Aviation Administration</Company>
+    <Authors>James B Bradford</Authors>
+    <PackageIcon>TRI-BURST 2000.png</PackageIcon>
+    <RepositoryUrl>https://github.com/blakeZTL/Power-Platform-Tools</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/blakeZTL/Power-Platform-Tools</PackageProjectUrl>	
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="AJT2000 Icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\OneDrive - Federal Aviation Administration\BURST\TRI-BURST 2000.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
