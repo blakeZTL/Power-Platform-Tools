@@ -210,6 +210,7 @@ namespace Deployment_Settings_File
             return deploymentSettingsPath;
         }
 
+        #region Autofill Methods
         /// <summary>
         /// A method to autofill connection references in the deployment settings file
         /// </summary>
@@ -498,6 +499,6 @@ namespace Deployment_Settings_File
             
             Helpers.PauseForUser("Finish and exit.");
         }
+        #endregion
     }
 }
-

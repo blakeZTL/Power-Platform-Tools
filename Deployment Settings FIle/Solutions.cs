@@ -8,6 +8,7 @@ namespace Deployment_Settings_File
 {
     public class Solutions
     {
+        #region Export Methods
         /// <summary>
         /// Exports a solution with a specific unique name by connecting to dataverse with the given connection string.
         /// </summary>
@@ -121,6 +122,7 @@ namespace Deployment_Settings_File
             // Pause the program and wait for user input to continue
             Helpers.PauseForUser("Generate Deployment Settings File");
         }
+        #endregion
 
         /// <summary>
         /// Prompts the user to enter the logical name of the solution they want to export, and checks that the name is valid (does not contain spaces).
