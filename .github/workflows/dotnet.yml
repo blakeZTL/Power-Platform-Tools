@@ -8,6 +8,11 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+    
+env:
+  PROJECT_PATH: Deployment Settings FIle/Deployment Settings File.csproj
+  ZIP_PATH: Deployment Settings FIle/bin/Release/net6.0s/publish/Deployment Settings File-Portable.zip
+  EXE_PATH: Deployment Settings FIle/bin/Release/net6.0/publish/Deployment Settings File.exe
 
 jobs:
   build:
@@ -21,8 +26,24 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ${{ env.PROJECT_PATH }}
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal 
+    - name: Publish
+      run : dotnet publish ${{ env.PROJECT_PATH }} -c Release 
+    - name: Create Zip
+      uses: papeloto/action-zip@v1
+      with:
+        files: ${{ env.EXE_PATH }}
+        dest: ${{ env.ZIP_PATH }}
+    - name: Initialize Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+    
