@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Deployment_Settings_FIle;
+using Microsoft.Extensions.Configuration;
 using Microsoft.PowerPlatform.Dataverse.Client;
-using System.Data;
 
 namespace Deployment_Settings_File
 {
@@ -39,7 +39,7 @@ namespace Deployment_Settings_File
             #region Solution Export
             string? solutionName = null;
             string? needToExport;
-            
+
             do
             {
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -80,7 +80,8 @@ namespace Deployment_Settings_File
 
                 ServiceClient? svc;
                 if (connectionType == "c")
-                {                    
+                {
+                    //Discovery.ListEnvironments().Wait();
                     svc = MakeConnection.OAuth();
                 }
                 else
@@ -152,7 +153,7 @@ namespace Deployment_Settings_File
                 Console.ForegroundColor = ConsoleColor.White;
                 needToAutoFill = Console.ReadLine();
                 Console.ForegroundColor = ConsoleColor.Green;
-                
+
 
                 if (needToAutoFill != "y" && needToAutoFill != "n")
                 {
@@ -204,7 +205,7 @@ namespace Deployment_Settings_File
                     svc = MakeConnection.ServicePrincipal();
                 }
 
-                FileGeneration.AutofillConnections(svc, deploymentSettingsFile);                
+                FileGeneration.AutofillConnections(svc, deploymentSettingsFile);
             }
             #endregion
         }

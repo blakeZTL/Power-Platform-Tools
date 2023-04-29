@@ -2,14 +2,18 @@
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
+using Deployment_Settings_FIle.Properties;
 using System.Security;
+using System.Resources;
 
 namespace Deployment_Settings_File
 {
     internal class MakeConnection
     {
+
         #region JSON Classes
         public class Environment
         {
@@ -107,31 +111,12 @@ namespace Deployment_Settings_File
 
             string? url;
 
-            // Get current users email address
-            string? email = UserPrincipal.Current.EmailAddress;
-
             url = PromptForEnvironment();
-
-            //Prompt the user for the environment URL
-            //Console.ForegroundColor = ConsoleColor.Green;
-            //Console.WriteLine("\nEnter environment url (for example: https://{environmentName}.crm9.dynamics.com):");
-            //Console.ForegroundColor = ConsoleColor.White;
-            //url = Console.ReadLine();
-            //Console.ForegroundColor = ConsoleColor.Green;
 
             /// < TODO > AppId and redirect url needs to be customized to your own credntials in appsettings.json </ TODO >
             // Create the service connection string using the info provided above.
-            string? connectionString = @$"
-            AuthType=OAuth;
-            Username={email};
-            Integrated Security=True;
-            Url={url};            
-            AppId=c1f1b3d2-3fd9-4fd8-b3b0-71f8e3f1e687;
-            RedirectUri=https://power-apis-usgov001-public.consent.azure-apihub.us/redirect;
-            TokenCacheStorePath=c:\MyTokenCache\msal_cache.data;
-            LoginPrompt=Auto
-            ";
 
+            string? connectionString = Helpers.ConstructConnectionString(url);
 
             ServiceClient svc;
             try
@@ -259,7 +244,7 @@ namespace Deployment_Settings_File
                 Debug.WriteLine(output);
                 File.WriteAllText("appsettings.json", output);
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine($"\nEnvironment '{environmentName}' saved.");
+                Console.WriteLine($"\nEnvironment '{environmentName}' saved.");                
             }
         }
 

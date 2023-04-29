@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Deployment Settings File": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

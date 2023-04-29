@@ -1,4 +1,5 @@
 ﻿using Microsoft.PowerPlatform.Dataverse.Client;
+using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
 using System.Net.NetworkInformation;
 using System.Security;
@@ -58,6 +59,34 @@ namespace Deployment_Settings_File
                 }
             }
             return pwd;
+        }
+
+        /// <summary>
+        /// A helper method to get the current user's username in the format of an email address.
+        /// </summary>
+        /// <returns>An email address sting</returns>
+        public static string GetUserName()
+        {
+            string? userName = UserPrincipal.Current.EmailAddress;
+
+            return userName;
+        }
+
+        /// <summary>
+        /// A method to constuct a connection string from a URL for the Dataverse environment.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns>Populated connection string</returns>
+        public static string ConstructConnectionString(string url)
+        {
+            string baseString = System.Configuration.ConfigurationManager.ConnectionStrings["default"].ToString();
+            Debug.WriteLine(baseString);
+            string connectionString = baseString.Replace("{{url}}", url)
+                .Replace("{{userName}}", GetUserName());
+            Debug.WriteLine(connectionString);
+
+            return connectionString;
+
         }
     }
 }
