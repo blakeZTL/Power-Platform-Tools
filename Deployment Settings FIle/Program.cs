@@ -9,7 +9,7 @@ namespace Deployment_Settings_File
         /// <summary>
         /// Contains the application's configuration settings. 
         /// </summary>
-        IConfiguration Configuration { get; }
+        IConfiguration Configuration { get; set; }
 
         /// <summary>
         /// Constructor. Loads the application configuration settings from a JSON file.
@@ -29,6 +29,8 @@ namespace Deployment_Settings_File
 
         static void Main()
         {
+            Program app = new();
+
             Console.Title = "Main";
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("A BURST tool for creating deployment settings files for Dataverse solutions.\n");
@@ -78,7 +80,7 @@ namespace Deployment_Settings_File
 
                 ServiceClient? svc;
                 if (connectionType == "c")
-                {
+                {                    
                     svc = MakeConnection.OAuth();
                 }
                 else
