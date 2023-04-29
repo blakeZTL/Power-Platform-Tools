@@ -9,7 +9,7 @@ namespace Deployment_Settings_File
         /// <summary>
         /// Contains the application's configuration settings. 
         /// </summary>
-        IConfiguration Configuration { get; }
+        IConfiguration Configuration { get; set; }
 
 
         /// <summary>
