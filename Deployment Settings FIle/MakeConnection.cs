@@ -18,14 +18,6 @@ namespace Deployment_Settings_File
         }
         #endregion
 
-        #region JSON Classes
-        public class Environment
-        {
-            public string? Name { get; set; }
-            public string? Url { get; set; }
-        }
-        #endregion
-
         #region ServiceClient Methods
         /// <summary>
         /// Prompts the user for connection credentials and returns them as an array of strings.
