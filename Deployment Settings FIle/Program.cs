@@ -80,9 +80,7 @@ namespace Deployment_Settings_File
 
                 ServiceClient? svc;
                 if (connectionType == "c")
-                {
-                    string? envName = MakeConnection.PromptForEnvironment();
-
+                {                    
                     svc = MakeConnection.OAuth();
                 }
                 else
