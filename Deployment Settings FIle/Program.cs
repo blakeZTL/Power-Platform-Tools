@@ -11,7 +11,6 @@ namespace Deployment_Settings_File
         /// </summary>
         IConfiguration Configuration { get; }
 
-
         /// <summary>
         /// Constructor. Loads the application configuration settings from a JSON file.
         /// </summary>
@@ -35,9 +34,10 @@ namespace Deployment_Settings_File
             Console.WriteLine("A BURST tool for creating deployment settings files for Dataverse solutions.\n");
             Console.ForegroundColor = ConsoleColor.Green;
 
+            #region Solution Export
             string? solutionName = null;
             string? needToExport;
-
+            
             do
             {
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -102,7 +102,9 @@ namespace Deployment_Settings_File
 
                 solutionExported = false;
             }
+            #endregion
 
+            #region Deployment Settings File
             string? needSettingsFile;
             string? deploymentSettingsFile = null;
             do
@@ -135,7 +137,9 @@ namespace Deployment_Settings_File
                     Solutions.CleanUpSolutionFiles(solutionPath, unpackPath);
                 }
             }
+            #endregion
 
+            #region Autofill
             string? needToAutoFill;
 
             do
@@ -198,9 +202,9 @@ namespace Deployment_Settings_File
                     svc = MakeConnection.ServicePrincipal();
                 }
 
-                FileGeneration.AutofillConnections(svc, deploymentSettingsFile);
-                
+                FileGeneration.AutofillConnections(svc, deploymentSettingsFile);                
             }
+            #endregion
         }
     }
 }
