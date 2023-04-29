@@ -30,6 +30,8 @@ namespace Deployment_Settings_File
 
         static void Main()
         {
+            Program app = new();
+
             Console.Title = "Main";
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("A BURST tool for creating deployment settings files for Dataverse solutions.\n");
@@ -79,6 +81,8 @@ namespace Deployment_Settings_File
                 ServiceClient? svc;
                 if (connectionType == "c")
                 {
+                    string? envName = MakeConnection.PromptForEnvironment();
+
                     svc = MakeConnection.OAuth();
                 }
                 else

@@ -1,4 +1,6 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.PowerPlatform.Dataverse.Client;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Configuration;
 using System.DirectoryServices.AccountManagement;
@@ -8,6 +10,14 @@ namespace Deployment_Settings_File
 {
     internal class MakeConnection
     {
+        #region JSON Classes
+        public class Environment
+        {
+            public string? Name { get; set; }
+            public string? Url { get; set; }
+        }
+        #endregion
+
         /// <summary>
         /// Prompts the user for connection credentials and returns them as an array of strings.
         /// </summary>
@@ -23,7 +33,7 @@ namespace Deployment_Settings_File
             string? clientId;
             SecureString? clientSecretSec;
             string? url;
-            string[]? environments = GetEnvironments();
+            Environment[]? environments = GetEnvironments();
 
             /// <TODO> Make these 3 values match regex and not be blank </TODO>
 
@@ -99,6 +109,8 @@ namespace Deployment_Settings_File
             // Get current users email address
             string? email = UserPrincipal.Current.EmailAddress;
 
+            string? envUrl = PromptForEnvironment();
+
             //Prompt the user for the environment URL
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\nEnter environment url (for example: https://{environmentName}.crm9.dynamics.com):");
@@ -148,19 +160,30 @@ namespace Deployment_Settings_File
                 return null;
             }
         }
-        
+
         /// <summary>
         /// A method that gets the environments from the appsettings.json file.
         /// </summary>
         /// <returns>An array of saved environments.</returns>
-        public static string[] GetEnvironments()
+        public static Environment[] GetEnvironments()
         {
             // Get the environments from the appsettings.json file
-            string? environments = ConfigurationManager.AppSettings["Environments"];
-            // Convert the environments to a string array
-            string[] environmentsArray = environments.Split(',');
-            return environmentsArray;
+            IConfiguration config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
+
+            Environment[] environments = config.GetSection("Environments")
+                .GetChildren()
+                .Select(x => new Environment
+                {
+                    Name = x.GetValue<string>("name"),
+                    Url = x.GetValue<string>("url")
+                })
+                .ToArray();
+
+            return environments;
         }
+
 
         /// <summary>
         /// A method that gets the environment URL from the appsettings.json file.
@@ -169,20 +192,17 @@ namespace Deployment_Settings_File
         /// <returns>The url of the input environment name</returns>
         public static string GetEnvironmentUrl(string environmentName)
         {
-            // Get the environments from the appsettings.json file
-            string? environments = ConfigurationManager.AppSettings["Environments"];
-            // Convert the environments to a string array
-            string[] environmentsArray = environments.Split(',');
-            // Get the index of the environment name
-            int index = Array.IndexOf(environmentsArray, environmentName);
-            // Get the environment URL from the appsettings.json file
-            string? environmentUrls = ConfigurationManager.AppSettings["EnvironmentUrls"];
-            // Convert the environment URLs to a string array
-            string[] environmentUrlsArray = environmentUrls.Split(',');
-            // Get the environment URL from the array
-            string environmentUrl = environmentUrlsArray[index];
+            Environment[] environments = GetEnvironments();
+
+            // Get the environment URL from the environment object where the name matches the input environment name
+            string environmentUrl = environments.Where(x => x.Name == environmentName)
+                                                .Select(x => x.Url)
+                                                .FirstOrDefault()??
+                                                throw new ArgumentException($"Environment '{environmentName}' not found in appsettings.json");
+
             return environmentUrl;
         }
+
 
         /// <summary>
         /// A method that saves the environment to the appsettings.json file.
@@ -191,23 +211,65 @@ namespace Deployment_Settings_File
         /// <param name="environmentUrl"></param>
         public static void SaveEnvironment(string environmentName, string environmentUrl)
         {
+            // Get the configuration from the appsettings.json file
+            IConfiguration config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            // Get the existing environments array
+            Environment[] environments = GetEnvironments();
+
+            // Check if an environment with the same name already exists
+            if (environments.Any(x => x.Name == environmentName))
+            {
+                throw new ArgumentException($"Environment '{environmentName}' already exists in appsettings.json");
+            }
+
+            // Add the new environment to the array
+            environments.Append(new Environment { Name = environmentName, Url = environmentUrl });
+
+            // Save the updated configuration to the appsettings.json file
+            var json = JsonConvert.SerializeObject(config.GetSection("ConnectionStrings"), Formatting.Indented)
+                     + "\n" // Or use "\r\n" depending on the line ending used in the appsettings.json file
+                     + JsonConvert.SerializeObject(new { Environments = environments }, Formatting.Indented);
+            File.WriteAllText("appsettings.json", json);
+        }
+
+
+        /// <summary>
+        /// A method that prompts the user for the environment
+        /// and saves it to the appsettings.json file if not already there.
+        /// </summary>
+        /// <returns>The selected or input environment.</returns>
+        public static string PromptForEnvironment()
+        {
             // Get the environments from the appsettings.json file
-            string? environments = ConfigurationManager.AppSettings["Environments"];
-            // Convert the environments to a string array
-            string[] environmentsArray = environments.Split(',');
-            // Get the environment URL from the appsettings.json file
-            string? environmentUrls = ConfigurationManager.AppSettings["EnvironmentUrls"];
-            // Convert the environment URLs to a string array
-            string[] environmentUrlsArray = environmentUrls.Split(',');
-            // Add the new environment to the arrays
-            environmentsArray.Append(environmentName);
-            environmentUrlsArray.Append(environmentUrl);
-            // Convert the arrays to strings
-            string environmentsString = string.Join(",", environmentsArray);
-            string environmentUrlsString = string.Join(",", environmentUrlsArray);
-            // Save the new environments to the appsettings.json file
-            ConfigurationManager.AppSettings["Environments"] = environmentsString;
-            ConfigurationManager.AppSettings["EnvironmentUrls"] = environmentUrlsString;
+            Environment[]? environments = GetEnvironments();
+            Console.WriteLine("\n" + environments);
+
+            // Make an array of the environment names with an index value for each starting at 1
+            string[] environmentNames = environments.Select((x, i) => $"{i + 1}. {x.Name}").ToArray();            
+            Console.WriteLine("\n" + environmentNames);
+
+            string? environmentChoice;
+            do
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Choose an environment by number or type new to enter your own:");
+                Console.ForegroundColor = ConsoleColor.White;
+                environmentChoice = Console.ReadLine();
+            }
+            while (environmentChoice != "new");
+
+            
+            // Prompt the user for the environment name
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\nEnter environment name:");
+            Console.ForegroundColor = ConsoleColor.White;
+            string environmentName = Console.ReadLine();
+            Console.ForegroundColor = ConsoleColor.Green;
+            
+            return environmentName;
         }
     }
 }
