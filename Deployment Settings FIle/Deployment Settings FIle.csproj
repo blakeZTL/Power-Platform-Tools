@@ -5,7 +5,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Deployment_Settings_FIle</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>	
+    <Nullable>enable</Nullable>
+    <Title>Deployment Settings File Generator</Title>	
   </PropertyGroup>
 
   <ItemGroup>
