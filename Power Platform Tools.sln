@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deployment Settings FIle", "Deployment Settings FIle\Deployment Settings FIle.csproj", "{C30C9AFB-A443-49CC-9919-BA3C6DB551E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deployment Settings File", "Deployment Settings FIle\Deployment Settings File.csproj", "{C30C9AFB-A443-49CC-9919-BA3C6DB551E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

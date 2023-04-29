@@ -3,6 +3,7 @@ using Microsoft.PowerPlatform.Dataverse.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Configuration;
+using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
 using System.Security;
 
@@ -167,23 +168,34 @@ namespace Deployment_Settings_File
         /// <returns>An array of saved environments.</returns>
         public static Environment[] GetEnvironments()
         {
-            // Get the environments from the appsettings.json file
+            // Get the configuration from the appsettings.json file
             IConfiguration config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            Environment[] environments = config.GetSection("Environments")
-                .GetChildren()
-                .Select(x => new Environment
+            // Get the "Environments" section and its children
+            IConfigurationSection environmentsSection = config.GetSection("Environments");
+            IEnumerable<IConfigurationSection> environmentSections = environmentsSection.GetChildren();
+
+            // Create an array to hold the mapped environments
+            Environment[] environments = new Environment[environmentSections.Count()];
+
+            // Map each IConfigurationSection to an Environment object
+            int i = 0;
+            foreach (IConfigurationSection environmentSection in environmentSections)
+            {
+                Environment environment = new()
                 {
-                    Name = x.GetValue<string>("name"),
-                    Url = x.GetValue<string>("url")
-                })
-                .ToArray();
+                    Name = environmentSection["name"],
+                    Url = environmentSection["url"]
+                };
+
+                environments[i] = environment;
+                i++;
+            }
 
             return environments;
         }
-
 
         /// <summary>
         /// A method that gets the environment URL from the appsettings.json file.
@@ -202,7 +214,6 @@ namespace Deployment_Settings_File
 
             return environmentUrl;
         }
-
 
         /// <summary>
         /// A method that saves the environment to the appsettings.json file.
@@ -227,16 +238,18 @@ namespace Deployment_Settings_File
 
             // Add the new environment to the array
             Array.Resize(ref environments, environments.Length + 1);
-            environments[environments.Length - 1] = new Environment { Name = environmentName, Url = environmentUrl };
+            environments[^1] = new Environment { Name = environmentName, Url = environmentUrl };
 
-            // Update the configuration with the new environments array
-            config.GetSection("Environments").Bind(environments);
-
-            // Save the updated configuration to the appsettings.json file
-            var json = JsonConvert.SerializeObject(config, Formatting.Indented);
-            File.WriteAllText("appsettings.json", json);
+            // Update the appsettings.json file with the new environments array
+            JObject appSettings = new()
+            {
+                ["ConnectionStrings"] = JObject.Parse(JsonConvert.SerializeObject(config.GetSection("ConnectionStrings"))),
+                ["Environments"] = JArray.FromObject(environments)
+            };
+            Debug.WriteLine(appSettings);
+            File.WriteAllText("appsettings.json", JsonConvert.SerializeObject(appSettings, Formatting.Indented));
+            File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), JsonConvert.SerializeObject(appSettings, Formatting.Indented));
         }
-
 
 
         /// <summary>
