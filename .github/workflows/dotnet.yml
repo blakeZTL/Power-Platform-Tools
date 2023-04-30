@@ -43,4 +43,5 @@ jobs:
       with:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: ${{ env.ZIP_PATH }}
-          artifactContentType: zip          
+          artifactContentType: zip 
+          tag: v0.0.1
