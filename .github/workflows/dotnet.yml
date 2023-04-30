@@ -40,8 +40,8 @@ jobs:
         type: 'zip'
         filename: 'dsfg.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig'
-        path: ${{ env.EXE_PATH }}
-        directory: ${{ env.ZIP_PATH }}
+        path: '${{ env.EXE_PATH }}'
+        directory: '${{ env.ZIP_PATH }}'
     - name: Create Release    
       uses: ncipollo/release-action@v1.12.0
       with:
