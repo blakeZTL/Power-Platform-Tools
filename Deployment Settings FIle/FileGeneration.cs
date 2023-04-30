@@ -34,6 +34,7 @@ namespace Deployment_Settings_File
             // create a new json object
             JObject deploymentSettingsJson = new();
 
+            #region Environment Variables
             // search for a folder called environmentvariabledefinitions
             string[] envVarDefPath = Directory.GetDirectories(solutionUnpackPath, "environmentvariabledefinitions", SearchOption.AllDirectories);
 
@@ -77,6 +78,8 @@ namespace Deployment_Settings_File
                 Console.WriteLine("\nNo environment variable definitions found.");
                 Console.ForegroundColor = ConsoleColor.Green;
             }
+            #endregion
+
 
             // look for a file called customizations.xml
             string[] customizationsPath = Directory.GetFiles(solutionUnpackPath, "customizations.xml", SearchOption.AllDirectories);
@@ -84,6 +87,7 @@ namespace Deployment_Settings_File
             //if the file exists then read the contents
             if (customizationsPath.Length > 0)
             {
+                #region Connection References
                 Console.WriteLine("\nCustomizations file found.\nCompiling customizations...");
                 // read the contents of the file
                 string customizationsXml = File.ReadAllText(customizationsPath[0]);
@@ -138,6 +142,7 @@ namespace Deployment_Settings_File
                     Console.WriteLine("\nNo connection references found.");
                     Console.ForegroundColor = ConsoleColor.Green;
                 }
+                #endregion
             }
             else
             {
@@ -182,7 +187,7 @@ namespace Deployment_Settings_File
 
                         string emailPattern = @"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?";
 
-                        if (!string.IsNullOrWhiteSpace(workflowOwnerInput) && Regex.IsMatch(workflowOwnerInput,emailPattern))
+                        if (!string.IsNullOrWhiteSpace(workflowOwnerInput) && Regex.IsMatch(workflowOwnerInput, emailPattern))
                         {
                             workflowOwner = workflowOwnerInput;
                         }
@@ -297,6 +302,7 @@ namespace Deployment_Settings_File
 
             using (svc)
             {
+                #region Get Connections from Dataverse
                 // query the dataverse connector table
                 QueryExpression connectorsQuery = new("connectionreference");
                 connectorsQuery.ColumnSet.AllColumns = true;
@@ -356,6 +362,8 @@ namespace Deployment_Settings_File
                 {
                     Console.WriteLine("\n" + foundCon);
                 }
+                #endregion
+
 
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine("\nReading deployment settings file for comparison...");
@@ -408,6 +416,7 @@ namespace Deployment_Settings_File
                                 return tcConnectorClean == connectorWithoutId;
                             });
 
+                            #region Get Matching Record from Dataverse
                             if (!targetConnections.Any())
                             {
                                 break;
@@ -471,6 +480,7 @@ namespace Deployment_Settings_File
                                     targetConnection["ConnectionId"] = matchedId;
                                 }
                             }
+                            #endregion
                         }
                         else
                         {
