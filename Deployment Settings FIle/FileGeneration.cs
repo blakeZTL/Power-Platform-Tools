@@ -5,12 +5,14 @@ using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Data;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Deployment_Settings_File
 {
     internal class FileGeneration
     {
+        #region File Generation
         /// <summary>
         /// Creates a deployment settings file based on the solution provided.
         /// </summary>
@@ -157,6 +159,8 @@ namespace Deployment_Settings_File
                 // for each file in the Workflows folder, get the file names
                 string[] workflowFiles = Directory.GetFiles($@"{solutionUnpackPath}\Workflows", "*.json");
 
+
+                #region Workflow Owner
                 string? workflowOwner = "";
                 string? setWorkflowOwner;
                 do
@@ -169,10 +173,27 @@ namespace Deployment_Settings_File
 
                 if (setWorkflowOwner == "y")
                 {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("\nPlease enter the email address of the owner:");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    workflowOwner = Console.ReadLine();
+                    do
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("\nPlease enter the email address of the owner:");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        string workflowOwnerInput = Console.ReadLine() ?? "";
+
+                        string emailPattern = @"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?";
+
+                        if (!string.IsNullOrWhiteSpace(workflowOwnerInput) && Regex.IsMatch(workflowOwnerInput,emailPattern))
+                        {
+                            workflowOwner = workflowOwnerInput;
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Magenta;
+                            Console.WriteLine("\nPlease enter a valid email address.");
+                            Console.ForegroundColor = ConsoleColor.White;
+                        }
+                    }
+                    while (string.IsNullOrWhiteSpace(workflowOwner));
                 }
 
                 foreach (string workflow in workflowFiles)
@@ -202,7 +223,7 @@ namespace Deployment_Settings_File
                 Console.WriteLine("\nNo workflows found.");
                 Console.ForegroundColor = ConsoleColor.Green;
             }
-
+            #endregion
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\nCreating deployment settings file...");
 
@@ -218,6 +239,7 @@ namespace Deployment_Settings_File
 
             return deploymentSettingsPath;
         }
+
 
         /// <summary>
         /// A method to get the path of the deployment settings file from the user.
@@ -258,6 +280,7 @@ namespace Deployment_Settings_File
 
             return deploymentSettingsFile;
         }
+        #endregion
 
         #region Autofill Methods
         /// <summary>
