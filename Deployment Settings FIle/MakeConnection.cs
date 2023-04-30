@@ -32,8 +32,6 @@ namespace Deployment_Settings_File
             Console.Title = "Preparing Connection";
 
             #region Variables
-
-            #region Gather Credentials
             string clientId = "";
             SecureString clientSecretSec = new();
             string clientSecret = "";
@@ -41,6 +39,7 @@ namespace Deployment_Settings_File
 
             #endregion
 
+            #region Prompt for Connection Info
             do
             {
                 //Prompt the user for the environment URL 
