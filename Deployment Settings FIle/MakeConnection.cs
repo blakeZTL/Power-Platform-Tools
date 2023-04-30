@@ -31,32 +31,82 @@ namespace Deployment_Settings_File
             // Set the console title to indicate that the connection is being prepared.
             Console.Title = "Preparing Connection";
 
-            string? clientId;
-            SecureString? clientSecretSec;
-            string? url;
-            //Environment[]? environments = GetEnvironments();
+            #region Variables
 
-            /// <TODO> Make these 3 values match regex and not be blank </TODO>
+            #region Gather Credentials
+            string clientId = "";
+            SecureString clientSecretSec = new();
+            string clientSecret = "";
+            string url = "";
 
-            //Prompt the user for the environment URL                
-            Console.WriteLine("\nEnter environment url (for example: https://{environmentName}.crm9.dynamics.com):");
-            Console.ForegroundColor = ConsoleColor.White;
-            url = Console.ReadLine();
-            Console.ForegroundColor = ConsoleColor.Green;
+            #endregion
 
-            // Prompt the user for the client ID              
-            Console.WriteLine("\nEnter client id:");
-            Console.ForegroundColor = ConsoleColor.White;
-            clientId = Console.ReadLine();
-            Console.ForegroundColor = ConsoleColor.Green;
+            do
+            {
+                //Prompt the user for the environment URL 
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\nEnter environment url (for example: https://{environmentName}.crm9.dynamics.com):");
+                Console.ForegroundColor = ConsoleColor.White;
+                string urlInput = Console.ReadLine()?.Trim() ?? "";
+                if (urlInput.StartsWith("https://")
+                 && urlInput.EndsWith(".dynamics.com")
+                 && urlInput.Contains(".crm")
+                 && !string.IsNullOrWhiteSpace(url))
+                {
+                    url = urlInput;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine("\nInvalid URL. Please try again.");
+                }
+            }
+            while (string.IsNullOrWhiteSpace(url));
 
-            // Prompt the user for the client secret as a secure string
-            Console.WriteLine("\nEnter client secret:");
-            Console.ForegroundColor = ConsoleColor.White;
-            clientSecretSec = Helpers.GetPassword();
+            do
+            {
+                // Prompt the user for the client ID   
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\nEnter client id:");
+                Console.ForegroundColor = ConsoleColor.White;
+                string clientIdInput = Console.ReadLine()?.Trim() ?? "";
+                if (!string.IsNullOrWhiteSpace(clientIdInput))
+                {
+                    clientId = clientIdInput;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine("\nInvalid client id. Please try again.");
 
-            // Convert the secure string to a string
-            string? clientSecret = new System.Net.NetworkCredential(string.Empty, clientSecretSec).Password;
+                }
+            }
+            while (string.IsNullOrWhiteSpace(clientId));
+
+            do
+            {
+                // Prompt the user for the client secret as a secure string
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\nEnter client secret:");
+                Console.ForegroundColor = ConsoleColor.White;
+                SecureString clientSecretSecInput = Helpers.GetPassword();
+
+                if (clientSecretSecInput.Length > 0)
+                {
+                    clientSecretSec = clientSecretSecInput;
+
+                    // Convert the secure string to a string
+                    clientSecret = new System.Net.NetworkCredential(string.Empty, clientSecretSec).Password;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine("\nInvalid client secret. Please try again.");
+                }
+
+            }
+            while (string.IsNullOrWhiteSpace(clientSecret));
+            #endregion
 
             // Create the service connection string using the info provided above.
             string? connectionString = @$"
@@ -92,6 +142,7 @@ namespace Deployment_Settings_File
                 throw new Exception(ex.Message);
             }
         }
+
 
         /// <summary>
         /// A method that that connects the user to Dataverse using the OAuth authentication method.
