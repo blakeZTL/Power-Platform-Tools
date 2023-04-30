@@ -1,6 +1,5 @@
 ﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.PowerPlatform.Dataverse.Client;
-using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 
@@ -50,6 +49,8 @@ namespace Deployment_Settings_File
 
             using (svc)
             {
+                PublishCustomizations(svc);
+
                 Console.ForegroundColor = ConsoleColor.Blue;
 
                 // Export the solution file.
@@ -163,7 +164,7 @@ namespace Deployment_Settings_File
                     // Check if the solution name contains spaces. If it does, display an error message and continue the loop
                     if (Regex.IsMatch(solutionNameInput, pattern))
                     {
-                        Console.WriteLine("Solution name cannot contain spaces."); 
+                        Console.WriteLine("Solution name cannot contain spaces.");
                         continue;
                     }
                     else
@@ -173,7 +174,7 @@ namespace Deployment_Settings_File
                     }
                 }
                 else
-                {                    
+                {
                     continue;
                 }
             } while (Regex.IsMatch(solutionName, pattern) && string.IsNullOrWhiteSpace(solutionName));
@@ -280,6 +281,54 @@ namespace Deployment_Settings_File
                 // Set the console text color to dark red and display a message
                 Console.ForegroundColor = ConsoleColor.DarkRed;
                 Console.WriteLine("Directory deleted.");
+            }
+        }
+
+        /// <summary>
+        /// Prompts the user to publish the customizations and publishes them if requested.
+        /// </summary>
+        /// <param name="svc"></param>
+        public static void PublishCustomizations(ServiceClient svc)
+        {
+            string publish = "";
+            do
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\nWould you like to publish customizations? (y/n)");
+                Console.ForegroundColor = ConsoleColor.White;
+                string publishInput = Console.ReadLine()?.Trim() ?? "";
+                if (publishInput != "y" && publishInput != "n")
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine("Invalid input. Please try again");
+                }
+                else
+                {
+                    publish = publishInput;
+                }
+            }
+            while (string.IsNullOrWhiteSpace(publish));
+
+            if (publish == "y")
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\nPublishing customizations...");
+
+                // Publish the customizations
+                PublishAllXmlRequest publishRequest = new();
+                try
+                {
+                    svc.Execute(publishRequest);
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("\nPress control + c or simple close this terminal to exit the program.");
+                }
+
+                Console.ForegroundColor= ConsoleColor.DarkGray;
+                Console.WriteLine("\nPublishing complete.");
             }
         }
     }
