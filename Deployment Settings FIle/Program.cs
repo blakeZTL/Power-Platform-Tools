@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.PowerPlatform.Dataverse.Client;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Deployment_Settings_File
 {
@@ -207,7 +206,7 @@ namespace Deployment_Settings_File
                 FileGeneration.AutofillConnections(svc, deploymentSettingsFile);
             }
             #endregion
-        }        
+        }
     }
 }
 

@@ -4,7 +4,6 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.ComponentModel.Design;
 using System.Data;
 using System.Xml;
 
@@ -349,13 +348,13 @@ namespace Deployment_Settings_File
                 {
                     foreach (var conRef in conRefs)
                     {
-                        string connectorId = (string)conRef["ConnectorId"]!??"";
+                        string connectorId = (string)conRef["ConnectorId"]! ?? "";
                         //string connectorLogicalName = (string)conRef["LogicalName"];
 
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("\nId: " + connectorId);
 
-                        string connectorInternalId = connectorId.Substring(connectorId.LastIndexOf('/') + 1);
+                        string connectorInternalId = connectorId[(connectorId.LastIndexOf('/') + 1)..];
 
                         int lastIndexOfHyphen = connectorInternalId.LastIndexOf("-");
                         string connectorWithoutId;
@@ -375,7 +374,7 @@ namespace Deployment_Settings_File
                         {
                             IEnumerable<JToken> targetConnections = conRefs.Where(tc =>
                             {
-                                string tcConnectorId = tc["ConnectorId"]?.Value<string>()??"";
+                                string tcConnectorId = tc["ConnectorId"]?.Value<string>() ?? "";
 
                                 int tcLastForwardSlash = tcConnectorId.LastIndexOf("/");
                                 string tcConnectorWithoutId = tcLastForwardSlash == -1 ? tcConnectorId : tcConnectorId[(tcLastForwardSlash + 1)..];
@@ -501,7 +500,7 @@ namespace Deployment_Settings_File
             string dsfJson = File.ReadAllText(deploymentSettingsPath);
             JObject settingsJson = JObject.Parse(dsfJson);
 
-            JArray envVars = settingsJson["EnvironmentVariables"]!.ToObject<JArray>()??new JArray();
+            JArray envVars = settingsJson["EnvironmentVariables"]!.ToObject<JArray>() ?? new JArray();
 
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine("\nFound variables:");
@@ -534,7 +533,7 @@ namespace Deployment_Settings_File
 
             foreach (var envVar in envVars)
             {
-                string schemaName = envVar["SchemaName"]!.Value<string>()??"";
+                string schemaName = envVar["SchemaName"]!.Value<string>() ?? "";
                 Entity? matchingRecord = envVarValues.Entities.FirstOrDefault(e => e.GetAttributeValue<string>("schemaname") == schemaName);
                 if (matchingRecord != null)
                 {
@@ -556,7 +555,7 @@ namespace Deployment_Settings_File
 
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("\nChanges saved to deployment settings file.");
-            
+
             Helpers.PauseForUser("Finish and exit.");
         }
         #endregion
