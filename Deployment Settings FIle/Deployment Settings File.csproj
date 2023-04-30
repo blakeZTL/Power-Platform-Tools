@@ -23,7 +23,9 @@
 		<Content Include="AJT2000 Icon.ico" />
 	</ItemGroup>
 	<ItemGroup>
-		<EmbeddedResource Include="App.config" />
+		<EmbeddedResource Include="App.config">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\..\..\OneDrive - Federal Aviation Administration\BURST\TRI-BURST 2000.png">

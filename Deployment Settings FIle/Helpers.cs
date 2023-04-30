@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.DirectoryServices.AccountManagement;
 using System.Security;
 
 namespace Deployment_Settings_File
@@ -63,20 +64,11 @@ namespace Deployment_Settings_File
         /// <returns>An email address sting</returns>
         public static string GetUserName()
         {
-            string email;
+            
 #pragma warning disable CA1416 // Validate platform compatibility
-            var user = System.Security.Principal.WindowsIdentity.GetCurrent();
+            string email = UserPrincipal.Current.EmailAddress; 
 #pragma warning restore CA1416 // Validate platform compatibility
-            if (user != null)
-            {
-                var principal = new System.Security.Claims.ClaimsPrincipal(user);
-                email = principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value?.Trim() ?? "";
-            }
-            else
-            {
-                email = "";
-            }
-
+            
             string userName;
             if (!string.IsNullOrWhiteSpace(email))
             {
@@ -116,10 +108,20 @@ namespace Deployment_Settings_File
         /// <returns>Populated connection string</returns>
         public static string ConstructConnectionString(string url)
         {
-            string baseString = System.Configuration.ConfigurationManager.ConnectionStrings["default"].ToString();
-            Debug.WriteLine(baseString);
-            string connectionString = baseString.Replace("{{url}}", url)
-                .Replace("{{userName}}", GetUserName());
+            //string baseString = System.Configuration.ConfigurationManager
+            //    .ConnectionStrings["default"].ToString();
+            //Debug.WriteLine(baseString);
+            //string connectionString = baseString.Replace("{{url}}", url)
+            //    .Replace("{{userName}}", GetUserName());
+            string connectionString = $@"AuthType=OAuth;
+            Url={url};
+            Username={GetUserName()};
+            Integrated Security=True;
+            AppId=c1f1b3d2-3fd9-4fd8-b3b0-71f8e3f1e687;
+            RedirectUri=https://power-apis-usgov001-public.consent.azure-apihub.us/redirect;
+            TokenCacheStorePath=c:\\MyTokenCache\\msal_cache.data;
+            LoginPrompt=Auto";
+
             Debug.WriteLine(connectionString);
 
             return connectionString;
