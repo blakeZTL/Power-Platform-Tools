@@ -2,12 +2,8 @@
 using Microsoft.PowerPlatform.Dataverse.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Diagnostics;
-using System.DirectoryServices.AccountManagement;
-using Deployment_Settings_FIle.Properties;
 using System.Security;
-using System.Resources;
 
 namespace Deployment_Settings_File
 {
@@ -30,7 +26,7 @@ namespace Deployment_Settings_File
         /// <param name="oldClientId">The old client ID, if it exists and should be reused.</param>
         /// <param name="oldClientSecret">The old client secret, if it exists and should be reused.</param>
         /// <returns>An array of strings containing the connection string, client ID, and client secret.</returns>
-        public static ServiceClient? ServicePrincipal()
+        public static ServiceClient ServicePrincipal()
         {
             // Set the console title to indicate that the connection is being prepared.
             Console.Title = "Preparing Connection";
@@ -38,7 +34,7 @@ namespace Deployment_Settings_File
             string? clientId;
             SecureString? clientSecretSec;
             string? url;
-            Environment[]? environments = GetEnvironments();
+            //Environment[]? environments = GetEnvironments();
 
             /// <TODO> Make these 3 values match regex and not be blank </TODO>
 
@@ -47,8 +43,6 @@ namespace Deployment_Settings_File
             Console.ForegroundColor = ConsoleColor.White;
             url = Console.ReadLine();
             Console.ForegroundColor = ConsoleColor.Green;
-
-
 
             // Prompt the user for the client ID              
             Console.WriteLine("\nEnter client id:");
@@ -89,15 +83,13 @@ namespace Deployment_Settings_File
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.WriteLine("Connection Failed");
-                    return null;
+                    throw new Exception("Connection failed. Please check your credentials and try again.");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return null;
+                throw new Exception(ex.Message);
             }
         }
 
@@ -135,15 +127,13 @@ namespace Deployment_Settings_File
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.WriteLine("Connection Failed");
-                    return null;
+                    throw new Exception("Connection failed. Please check your credentials and try again.");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return null;
+                throw new Exception(ex.Message);
             }
         }
 
@@ -215,7 +205,7 @@ namespace Deployment_Settings_File
             JObject? settingsJson = JObject.Parse(dsfJson);
             Debug.WriteLine(settingsJson);
 
-            JArray? envs = settingsJson["Environments"]?.ToObject<JArray>();
+            JArray envs = settingsJson["Environments"]?.ToObject<JArray>() ?? new JArray();
 
             // Check if the environment already exists in the appsettings.json file
             bool environmentExists = envs.Any(x => x["name"]?.ToString() == environmentName);
@@ -244,7 +234,7 @@ namespace Deployment_Settings_File
                 Debug.WriteLine(output);
                 File.WriteAllText("appsettings.json", output);
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine($"\nEnvironment '{environmentName}' saved.");                
+                Console.WriteLine($"\nEnvironment '{environmentName}' saved.");
             }
         }
 
@@ -282,20 +272,51 @@ namespace Deployment_Settings_File
                    result < 1 || //less than 1
                    result > environmentNames.Length)); //greater than the number of environments
 
-            string? environmentName;
+            string environmentName = "";
+            string environmentUrl = "";
             if (environmentChoice == "new")
             {
-                // Prompt the user for the environment name
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("\nEnter environment name:");
-                Console.ForegroundColor = ConsoleColor.White;
-                environmentName = Console.ReadLine();
+                do
+                {
+                    // Prompt the user for the environment name
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\nEnter environment name:");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    string environmentNameInput = Console.ReadLine()?.Trim() ?? "";
 
-                // Prompt the user for the environment URL
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("\nEnter environment url (for example: https://{environmentName}.crm9.dynamics.com):");
-                Console.ForegroundColor = ConsoleColor.White;
-                string? environmentUrl = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(environmentNameInput))
+                    {
+                        environmentName = environmentNameInput;
+                        break;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("\nEnvironment name cannot be empty.");
+                    }
+                }
+                while (!string.IsNullOrWhiteSpace(environmentName));
+
+                do
+                {
+                    // Prompt the user for the environment URL
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\nEnter environment url (for example: https://{environmentName}.crm9.dynamics.com):");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    string environmentUrlInput = Console.ReadLine()?.Trim() ?? "";
+
+                    if (!string.IsNullOrWhiteSpace(environmentUrlInput))
+                    {
+                        environmentUrl = environmentUrlInput;
+                        break;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine("\nEnvironment url cannot be empty.");
+                    }
+                }
+                while (!string.IsNullOrWhiteSpace(environmentUrl));
 
                 SaveEnvironment(environmentName, environmentUrl);
 
@@ -306,7 +327,8 @@ namespace Deployment_Settings_File
                 // Get the environment name from the environmentNames array where the index matches the input environmentChoice
                 environmentName = environmentNames[int.Parse(environmentChoice) - 1];
                 // Get the environment URL from the appsettings.json file
-                string? environmentUrl = GetEnvironmentUrl(environmentName);
+                environmentUrl = GetEnvironmentUrl(environmentName);
+
                 return environmentUrl;
             }
         }

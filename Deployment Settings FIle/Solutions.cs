@@ -22,16 +22,20 @@ namespace Deployment_Settings_File
 
             // Prompt the user to specify whether the solution is managed or unmanaged.
             bool managed;
-            string managedString;
+            string managedString = "";
             do
             {
                 Console.WriteLine("\nManaged or unmanaged? (m/u):");
                 Console.ForegroundColor = ConsoleColor.White;
-                managedString = Console.ReadLine();
-                if (managedString != "m" && managedString != "u")
+                string? managedStringInput = Console.ReadLine();
+                if (managedStringInput != "m" && managedStringInput != "u")
                 {
                     Console.WriteLine("Please enter m or u.");
                     continue;
+                }
+                else
+                {
+                    managedString = managedStringInput;
                 }
             }
             while (managedString != "m" && managedString != "u");
@@ -124,6 +128,7 @@ namespace Deployment_Settings_File
         }
         #endregion
 
+        #region Get Solution Information
         /// <summary>
         /// Prompts the user to enter the logical name of the solution they want to export, and checks that the name is valid (does not contain spaces).
         /// </summary>
@@ -131,8 +136,7 @@ namespace Deployment_Settings_File
         public static string GetSolutionName()
         {
             string pattern;
-            string ?solutionName;
-
+            string solutionName = "";
             // Loop until the user enters a valid solution name (does not contain spaces)
             do
             {
@@ -146,7 +150,7 @@ namespace Deployment_Settings_File
 
                 // Set the console text color to white and read the user's input
                 Console.ForegroundColor = ConsoleColor.White;
-                solutionName = Console.ReadLine();
+                string? solutionNameInput = Console.ReadLine()?.Trim();
 
                 // Set the console text color to green
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -154,21 +158,67 @@ namespace Deployment_Settings_File
                 // Set the pattern for the solution name (cannot contain spaces)
                 pattern = "\\s+";
 
-                if (solutionName != null)
+                if (solutionNameInput != null)
                 {
                     // Check if the solution name contains spaces. If it does, display an error message and continue the loop
-                    if (Regex.IsMatch(solutionName, pattern))
+                    if (Regex.IsMatch(solutionNameInput, pattern))
                     {
-                        Console.WriteLine("Solution name cannot contain spaces.");
+                        Console.WriteLine("Solution name cannot contain spaces."); 
                         continue;
                     }
+                    else
+                    {
+                        solutionName = solutionNameInput;
+                        break;
+                    }
                 }
-
-            } while (Regex.IsMatch(solutionName, pattern) == true);
+                else
+                {                    
+                    continue;
+                }
+            } while (Regex.IsMatch(solutionName, pattern) && string.IsNullOrWhiteSpace(solutionName));
 
             // If the solution name is valid, return it
             return solutionName;
         }
+
+        /// <summary>
+        /// A method that prompts the user to input the solution file's full path including extension.
+        /// </summary>
+        /// <param name="solutionPath"></param>
+        /// <param name="solutionExported"></param>
+        public static void GetSolutionPath(out string solutionPath, out bool solutionExported)
+        {
+            string solutionPathInput;
+            do
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("\nPlease input the solution file's full path including extension.\n");
+                Console.ForegroundColor = ConsoleColor.White;
+                solutionPathInput = Console.ReadLine()?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(solutionPathInput))
+                {
+                    if (!File.Exists(solutionPathInput))
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                        Console.WriteLine("\nFile not found. Please try again.");
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        solutionPathInput = "";
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            while (!string.IsNullOrWhiteSpace(solutionPathInput));
+
+            solutionPath = solutionPathInput!;
+            solutionExported = false;
+        }
+
+        #endregion
 
         /// <summary>
         /// Prompts the user to delete the generated solution files (.zip and unpacked directory) and deletes them if requested.
@@ -180,7 +230,7 @@ namespace Deployment_Settings_File
             // Set the console window title
             Console.Title = "Clean up";
 
-            string ?cleanUp;
+            string cleanUp = "";
 
             // Loop until the user enters a valid input (y or n)
             do
@@ -191,13 +241,17 @@ namespace Deployment_Settings_File
 
                 // Set the console text color to white and read the user's input
                 Console.ForegroundColor = ConsoleColor.White;
-                cleanUp = Console.ReadLine();
+                string? cleanUpInput = Console.ReadLine();
 
                 // If the input is invalid, set the console text color to magenta and display an error message
-                if (cleanUp != "y" && cleanUp != "n")
+                if (cleanUpInput != "y" && cleanUpInput != "n")
                 {
                     Console.ForegroundColor = ConsoleColor.Magenta;
                     Console.WriteLine("Invalid input. Please try again");
+                }
+                else
+                {
+                    cleanUp = cleanUpInput;
                 }
             }
             while (cleanUp != "y" && cleanUp != "n");

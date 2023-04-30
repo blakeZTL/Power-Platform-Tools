@@ -1,9 +1,5 @@
-﻿using Microsoft.PowerPlatform.Dataverse.Client;
-using System.Diagnostics;
-using System.DirectoryServices.AccountManagement;
-using System.Net.NetworkInformation;
+﻿using System.Diagnostics;
 using System.Security;
-using System.Security.Policy;
 
 namespace Deployment_Settings_File
 {
@@ -67,9 +63,50 @@ namespace Deployment_Settings_File
         /// <returns>An email address sting</returns>
         public static string GetUserName()
         {
-            string? userName = UserPrincipal.Current.EmailAddress;
+            string email;
+#pragma warning disable CA1416 // Validate platform compatibility
+            var user = System.Security.Principal.WindowsIdentity.GetCurrent();
+#pragma warning restore CA1416 // Validate platform compatibility
+            if (user != null)
+            {
+                var principal = new System.Security.Claims.ClaimsPrincipal(user);
+                email = principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value?.Trim() ?? "";
+            }
+            else
+            {
+                email = "";
+            }
 
-            return userName;
+            string userName;
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                userName = email!;
+
+                return userName;
+            }
+            else
+            {
+                do
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\nPlease enter your email address:");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    email = Console.ReadLine()?.Trim() ?? "";
+
+                    if (string.IsNullOrWhiteSpace(email))
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                        Console.WriteLine("\nInvalid input. Please try again.");
+                        continue;
+                    }
+                    else
+                    {
+                        userName = email!;
+                        return userName;
+                    }
+                }
+                while (true);
+            }
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Xml;
 
@@ -91,42 +92,51 @@ namespace Deployment_Settings_File
                 customizationsDoc.LoadXml(customizationsXml);
 
                 // get the connectionReferences node if it exists
-                XmlNode connectionReferencesNode = customizationsDoc.SelectSingleNode("//connectionreferences");
+                XmlNode? connectionReferencesNode = customizationsDoc.SelectSingleNode("//connectionreferences");
 
                 JArray connectionReferences = new();
                 deploymentSettingsJson.Add("ConnectionReferences", connectionReferences);
 
-                // iterate through the connectionReferences
-                Console.ForegroundColor = ConsoleColor.White;
-                foreach (XmlNode connectionReference in connectionReferencesNode.ChildNodes)
+                if (connectionReferencesNode?.ChildNodes.Count > 0)
                 {
-                    JObject connectionRef = new();
-
-                    XmlNode logicalNameNode = connectionReference.SelectSingleNode("@connectionreferencelogicalname");
-
-                    if (logicalNameNode != null)
-                    {
-                        string logicalName = logicalNameNode.InnerText;
-                        connectionRef.Add("LogicalName", logicalName);
-                    }
-
-                    connectionRef.Add("ConnectionId", "");
-
-                    XmlNode connectorIdNode = connectionReference.SelectSingleNode("connectorid");
-
-                    if (connectorIdNode != null)
-                    {
-                        string connectorId = connectorIdNode.InnerText;
-                        connectionRef.Add("ConnectorId", connectorId);
-                    }
-
-                    connectionReferences.Add(connectionRef);
-                    Console.WriteLine($"\nAdded connection reference:");
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.WriteLine(connectionRef);
+                    // iterate through the connectionReferences
                     Console.ForegroundColor = ConsoleColor.White;
+                    foreach (XmlNode connectionReference in connectionReferencesNode.ChildNodes)
+                    {
+                        JObject connectionRef = new();
+
+                        XmlNode? logicalNameNode = connectionReference.SelectSingleNode("@connectionreferencelogicalname");
+
+                        if (logicalNameNode != null)
+                        {
+                            string logicalName = logicalNameNode.InnerText;
+                            connectionRef.Add("LogicalName", logicalName);
+                        }
+
+                        connectionRef.Add("ConnectionId", "");
+
+                        XmlNode? connectorIdNode = connectionReference.SelectSingleNode("connectorid");
+
+                        if (connectorIdNode != null)
+                        {
+                            string connectorId = connectorIdNode.InnerText;
+                            connectionRef.Add("ConnectorId", connectorId);
+                        }
+
+                        connectionReferences.Add(connectionRef);
+                        Console.WriteLine($"\nAdded connection reference:");
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine(connectionRef);
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    Console.ForegroundColor = ConsoleColor.Green;
                 }
-                Console.ForegroundColor = ConsoleColor.Green;
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                    Console.WriteLine("\nNo connection references found.");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
             }
             else
             {
@@ -210,6 +220,46 @@ namespace Deployment_Settings_File
             return deploymentSettingsPath;
         }
 
+        /// <summary>
+        /// A method to get the path of the deployment settings file from the user.
+        /// </summary>
+        /// <returns>A path that has been verified to exist.</returns>
+        public static string GetDeploymentSettingsFilePath()
+        {
+            string deploymentSettingsFileInput;
+            string deploymentSettingsFile = "";
+            do
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\nPlease input the full path of your deployment settings file including extension.\n");
+                Console.ForegroundColor = ConsoleColor.White;
+                deploymentSettingsFileInput = Console.ReadLine()?.Trim() ?? "";
+
+                if (!string.IsNullOrWhiteSpace(deploymentSettingsFileInput))
+                {
+                    if (!File.Exists(deploymentSettingsFileInput))
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                        Console.WriteLine("\nFile not found. Please try again.");
+                        continue;
+                    }
+                    else
+                    {
+                        deploymentSettingsFile = deploymentSettingsFileInput;
+                        break;
+                    }
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                    Console.WriteLine("\nInvalid input. Please try again.");
+                }
+            }
+            while (string.IsNullOrWhiteSpace(deploymentSettingsFile));
+
+            return deploymentSettingsFile;
+        }
+
         #region Autofill Methods
         /// <summary>
         /// A method to autofill connection references in the deployment settings file
@@ -290,121 +340,131 @@ namespace Deployment_Settings_File
 
                 // read the json from the deploymentSettinsPath
                 string dsfJson = File.ReadAllText(deploymentSettingsPath);
+
                 JObject settingsJson = JObject.Parse(dsfJson);
 
-                JArray conRefs = settingsJson["ConnectionReferences"].ToObject<JArray>();
+                JArray? conRefs = settingsJson["ConnectionReferences"]?.ToObject<JArray>();
 
-                foreach (var conRef in conRefs)
+                if (conRefs != null)
                 {
-                    string connectorId = (string)conRef["ConnectorId"];
-                    //string connectorLogicalName = (string)conRef["LogicalName"];
-
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("\nId: " + connectorId);
-
-                    string connectorInternalId = connectorId.Substring(connectorId.LastIndexOf('/') + 1);
-
-                    int lastIndexOfHyphen = connectorInternalId.LastIndexOf("-");
-                    string connectorWithoutId;
-
-                    if (lastIndexOfHyphen != -1)
+                    foreach (var conRef in conRefs)
                     {
-                        connectorWithoutId = connectorInternalId[..connectorInternalId.LastIndexOf("-")];
-                    }
-                    else
-                    {
-                        connectorWithoutId = connectorInternalId;
-                    }
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.WriteLine("\nLooking for: " + connectorWithoutId);
+                        string connectorId = (string)conRef["ConnectorId"]!??"";
+                        //string connectorLogicalName = (string)conRef["LogicalName"];
 
-                    if (foundConnections.Contains(connectorWithoutId))
-                    {
-                        IEnumerable<JToken> targetConnections = conRefs.Where(tc =>
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("\nId: " + connectorId);
+
+                        string connectorInternalId = connectorId.Substring(connectorId.LastIndexOf('/') + 1);
+
+                        int lastIndexOfHyphen = connectorInternalId.LastIndexOf("-");
+                        string connectorWithoutId;
+
+                        if (lastIndexOfHyphen != -1)
                         {
-                            string tcConnectorId = tc["ConnectorId"]?.Value<string>();
-
-                            int tcLastForwardSlash = tcConnectorId.LastIndexOf("/");
-                            string tcConnectorWithoutId = tcLastForwardSlash == -1 ? tcConnectorId : tcConnectorId[(tcLastForwardSlash + 1)..];
-
-                            int tcLastHyphen = tcConnectorWithoutId.LastIndexOf("-");
-                            string tcConnectorClean = tcLastHyphen == -1 ? tcConnectorWithoutId : tcConnectorWithoutId[..tcLastHyphen];
-
-                            return tcConnectorClean == connectorWithoutId;
-                        });
-
-                        if (!targetConnections.Any())
-                        {
-                            break;
+                            connectorWithoutId = connectorInternalId[..connectorInternalId.LastIndexOf("-")];
                         }
-
-                        foreach (JToken targetConnection in targetConnections)
+                        else
                         {
-                            Console.ForegroundColor = ConsoleColor.DarkGreen;
-                            Console.WriteLine("Found record:");
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine(targetConnection);
+                            connectorWithoutId = connectorInternalId;
+                        }
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine("\nLooking for: " + connectorWithoutId);
 
-                            if (targetConnection != null)
+                        if (foundConnections.Contains(connectorWithoutId))
+                        {
+                            IEnumerable<JToken> targetConnections = conRefs.Where(tc =>
                             {
-                                Console.ForegroundColor = ConsoleColor.Gray;
-                                Console.Write($"Getting matching record from Dataverse...\n");
+                                string tcConnectorId = tc["ConnectorId"]?.Value<string>()??"";
 
-                                Entity matchingRecord = connectors.Entities.FirstOrDefault(e =>
+                                int tcLastForwardSlash = tcConnectorId.LastIndexOf("/");
+                                string tcConnectorWithoutId = tcLastForwardSlash == -1 ? tcConnectorId : tcConnectorId[(tcLastForwardSlash + 1)..];
+
+                                int tcLastHyphen = tcConnectorWithoutId.LastIndexOf("-");
+                                string tcConnectorClean = tcLastHyphen == -1 ? tcConnectorWithoutId : tcConnectorWithoutId[..tcLastHyphen];
+
+                                return tcConnectorClean == connectorWithoutId;
+                            });
+
+                            if (!targetConnections.Any())
+                            {
+                                break;
+                            }
+
+                            foreach (JToken targetConnection in targetConnections)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                                Console.WriteLine("Found record:");
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine(targetConnection);
+
+                                if (targetConnection != null)
                                 {
-                                    string mrConnectionId = e.GetAttributeValue<string>("connectionid");
+                                    Console.ForegroundColor = ConsoleColor.Gray;
+                                    Console.Write($"Getting matching record from Dataverse...\n");
 
-                                    // skip any records where mrConnectorId is null
-                                    if (mrConnectionId != null && !mrConnectionId.Contains('-'))
+                                    Entity? matchingRecord = connectors.Entities.FirstOrDefault(e =>
                                     {
-                                        string mrConnectorId = e.GetAttributeValue<string>("connectorid");
+                                        string mrConnectionId = e.GetAttributeValue<string>("connectionid");
 
-                                        Console.ForegroundColor = ConsoleColor.DarkGreen;
-                                        Console.WriteLine($"Cleaning ConnectorId {mrConnectorId} for comparassions to {connectorWithoutId}");
-                                        Console.ForegroundColor = ConsoleColor.DarkGray;
-
-                                        int mrLastHyphen = mrConnectorId.LastIndexOf("-");
-                                        string mrConnectorWithoutId = mrLastHyphen == -1 ? mrConnectorId : mrConnectorId[..mrLastHyphen];
-
-                                        int mrLastForwardSlash = mrConnectorWithoutId.LastIndexOf("/");
-                                        string mrConnectorClean = mrLastForwardSlash == -1 ? mrConnectorWithoutId : mrConnectorWithoutId[(mrLastForwardSlash + 1)..];
-
-                                        Console.WriteLine($"Comparing {mrConnectorClean} and {connectorWithoutId}");
-
-                                        bool match = mrConnectorClean == connectorWithoutId;
-
-                                        if (match)
+                                        // skip any records where mrConnectorId is null
+                                        if (mrConnectionId != null && !mrConnectionId.Contains('-'))
                                         {
-                                            Console.ForegroundColor = ConsoleColor.Magenta;
+                                            string mrConnectorId = e.GetAttributeValue<string>("connectorid");
+
+                                            Console.ForegroundColor = ConsoleColor.DarkGreen;
+                                            Console.WriteLine($"Cleaning ConnectorId {mrConnectorId} for comparassions to {connectorWithoutId}");
+                                            Console.ForegroundColor = ConsoleColor.DarkGray;
+
+                                            int mrLastHyphen = mrConnectorId.LastIndexOf("-");
+                                            string mrConnectorWithoutId = mrLastHyphen == -1 ? mrConnectorId : mrConnectorId[..mrLastHyphen];
+
+                                            int mrLastForwardSlash = mrConnectorWithoutId.LastIndexOf("/");
+                                            string mrConnectorClean = mrLastForwardSlash == -1 ? mrConnectorWithoutId : mrConnectorWithoutId[(mrLastForwardSlash + 1)..];
+
+                                            Console.WriteLine($"Comparing {mrConnectorClean} and {connectorWithoutId}");
+
+                                            bool match = mrConnectorClean == connectorWithoutId;
+
+                                            if (match)
+                                            {
+                                                Console.ForegroundColor = ConsoleColor.Magenta;
+                                            }
+
+                                            Console.WriteLine(match ? "Positive match!" : "No match.");
+
+                                            return match;
                                         }
+                                        return false;
+                                    });
 
-                                        Console.WriteLine(match ? "Positive match!" : "No match.");
+                                    string matchedId = matchingRecord?.GetAttributeValue<string>("connectionid") ?? "";
 
-                                        return match;
-                                    }
-                                    return false;
-                                });
+                                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                                    matchedId = matchedId.Length < 1 || matchedId == null ? "None found" : matchedId;
+                                    Console.WriteLine($"Match: {connectorId} with ConnectionId of {matchedId}");
+                                    Console.ForegroundColor = ConsoleColor.DarkYellow;
 
-                                string matchedId = matchingRecord.GetAttributeValue<string>("connectionid");
-
-                                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                                matchedId = matchedId.Length < 1 || matchedId == null ? "None found" : matchedId;
-                                Console.WriteLine($"Match: {connectorId} with ConnectionId of {matchedId}");
-                                Console.ForegroundColor = ConsoleColor.DarkYellow;
-
-                                Console.WriteLine($"Adding ConnectionId: {matchedId}\n");
-                                targetConnection["ConnectionId"] = matchedId;
+                                    Console.WriteLine($"Adding ConnectionId: {matchedId}\n");
+                                    targetConnection["ConnectionId"] = matchedId;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                                Console.WriteLine("\nNo match found.");
+                                Console.ForegroundColor = ConsoleColor.Green;
                             }
                         }
                     }
-                    else
-                    {
-                        {
-                            Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                            Console.WriteLine("\nNo match found.");
-                            Console.ForegroundColor = ConsoleColor.Green;
-                        }
-                    }
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine("\nNo ConnectionReferences found in deployment settings file.");
+                    Console.ForegroundColor = ConsoleColor.Green;
                 }
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("\nSaving changes to deployment settings file...");
@@ -441,7 +501,7 @@ namespace Deployment_Settings_File
             string dsfJson = File.ReadAllText(deploymentSettingsPath);
             JObject settingsJson = JObject.Parse(dsfJson);
 
-            JArray envVars = settingsJson["EnvironmentVariables"].ToObject<JArray>();
+            JArray envVars = settingsJson["EnvironmentVariables"]!.ToObject<JArray>()??new JArray();
 
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine("\nFound variables:");
@@ -458,7 +518,7 @@ namespace Deployment_Settings_File
             {
                 ColumnSet = new ColumnSet("schemaname", "value")
             };
-            getEnvVarValues.Criteria.AddCondition("schemaname", ConditionOperator.In, envVars.Select(e => e["SchemaName"].Value<string>()).ToArray());
+            getEnvVarValues.Criteria.AddCondition("schemaname", ConditionOperator.In, envVars.Select(e => e["SchemaName"]!.Value<string>()).ToArray());
 
             EntityCollection envVarValues = svc.RetrieveMultiple(getEnvVarValues);
 
@@ -474,8 +534,8 @@ namespace Deployment_Settings_File
 
             foreach (var envVar in envVars)
             {
-                string schemaName = envVar["SchemaName"].Value<string>();
-                Entity matchingRecord = envVarValues.Entities.FirstOrDefault(e => e.GetAttributeValue<string>("schemaname") == schemaName);
+                string schemaName = envVar["SchemaName"]!.Value<string>()??"";
+                Entity? matchingRecord = envVarValues.Entities.FirstOrDefault(e => e.GetAttributeValue<string>("schemaname") == schemaName);
                 if (matchingRecord != null)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkCyan;

@@ -1,6 +1,6 @@
-﻿using Deployment_Settings_FIle;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.PowerPlatform.Dataverse.Client;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Deployment_Settings_File
 {
@@ -91,19 +91,22 @@ namespace Deployment_Settings_File
 
                 solutionName = Solutions.GetSolutionName();
 
-                solutionPath = Solutions.ExportSolution(svc, solutionName);
+                if (svc != null)
+                {
+                    solutionPath = Solutions.ExportSolution(svc, solutionName);
 
-                Solutions.UnpackSolution(solutionPath);
+                    Solutions.UnpackSolution(solutionPath);
 
-                solutionExported = true;
+                    solutionExported = true;
+                }
+                else
+                {
+                    throw new Exception("Connection unavailable.");
+                }
             }
             else
             {
-                Console.Write("\nPlease input the solution file's full path including extension.\n");
-                Console.ForegroundColor = ConsoleColor.White;
-                solutionPath = Console.ReadLine();
-
-                solutionExported = false;
+                Solutions.GetSolutionPath(out solutionPath, out solutionExported);
             }
             #endregion
 
@@ -136,9 +139,10 @@ namespace Deployment_Settings_File
 
                 if (solutionExported == true)
                 {
-                    string? unpackPath = solutionPath.Replace(".zip", "");
+                    string unpackPath = solutionPath.Replace(".zip", "");
                     Solutions.CleanUpSolutionFiles(solutionPath, unpackPath);
                 }
+
             }
             #endregion
 
@@ -172,12 +176,7 @@ namespace Deployment_Settings_File
             {
                 Console.Clear();
 
-                if (deploymentSettingsFile == null)
-                {
-                    Console.WriteLine("\nPlease input the full path of your deployment settings file including extension.\n");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    deploymentSettingsFile = Console.ReadLine();
-                }
+                deploymentSettingsFile ??= FileGeneration.GetDeploymentSettingsFilePath();
 
                 string? connectionType;
                 do
@@ -195,7 +194,7 @@ namespace Deployment_Settings_File
                 }
                 while (connectionType != "c" && connectionType != "s");
 
-                ServiceClient? svc;
+                ServiceClient svc;
                 if (connectionType == "c")
                 {
                     svc = MakeConnection.OAuth();
@@ -208,7 +207,7 @@ namespace Deployment_Settings_File
                 FileGeneration.AutofillConnections(svc, deploymentSettingsFile);
             }
             #endregion
-        }
+        }        
     }
 }
 

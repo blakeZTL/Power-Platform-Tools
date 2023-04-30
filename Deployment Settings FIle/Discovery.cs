@@ -3,11 +3,6 @@ using Microsoft.PowerPlatform.Dataverse.Client;
 using Microsoft.PowerPlatform.Dataverse.Client.Auth;
 using Microsoft.PowerPlatform.Dataverse.Client.Model;
 using Microsoft.Xrm.Sdk.Discovery;
-using System;
-using System.ComponentModel;
-using System.DirectoryServices.AccountManagement;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Deployment_Settings_FIle
 {
@@ -46,12 +41,15 @@ namespace Deployment_Settings_FIle
                 Console.WriteLine($"{number} Name: {organization.FriendlyName} URL: {webAppUrl}");
             }
 
-            string typedValue = string.Empty;
+            string? typedValue = string.Empty;
             try
             {
                 typedValue = Console.ReadLine();
-
-                int selected = int.Parse(typedValue);
+                if (int.TryParse(typedValue, out int selected))
+                {
+                    selected = int.Parse(typedValue);
+                }
+                else { throw new Exception("Unable to parse value."); }
 
                 if (selected <= number)
                 {
